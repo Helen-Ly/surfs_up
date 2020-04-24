@@ -25,9 +25,6 @@ Base.prepare(engine, reflect = True)
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
-# Create a session link from Python to our database
-session = Session(engine)
-
 #-------------
 # Set up Flask
 #-------------
@@ -52,11 +49,16 @@ def welcome():
     /api/v1.0/temp/start/end <br>
     ''')
 
+
 # Create precipitation Route
 @app.route('/api/v1.0/precipitation')
 
 # Create precipitation function
 def precipitation():
+
+    # Create a session link from Python to our database
+    session = Session(engine)
+
 
     # Add code that calculates the date one year ago from the most recent date in db
     prev_year = dt.date(2017, 8, 23) - dt.timedelta(days = 365)
@@ -68,6 +70,9 @@ def precipitation():
     # Use jsonify() to format our results into a JSON structured file
     precip = {date:prcp for date,prcp in precipitation}
 
+    # Close the session
+    session.close()
+
     # Return jsonify(precip)
     return jsonify(precip)
 
@@ -76,12 +81,18 @@ def precipitation():
 
 # Create stations functions
 def stations():
+    
+    # Create a session link from Python to our database
+    session = Session(engine)
 
     # Add query to get all stations in our db
     results = session.query(Station.station).all()
 
     # Convert our unraveled results into a list
     stations = list(np.ravel(results))
+
+    # Close the session
+    session.close()
 
     return jsonify(stations)
 
@@ -90,6 +101,9 @@ def stations():
 
 # Create tobs function
 def temp_monthly():
+
+    # Create a session link from Python to our database
+    session = Session(engine)
 
     # Add code that calculates the date one year ago from the most recent date in db
     prev_year = dt.date(2017, 8, 23) - dt.timedelta(days = 365)
@@ -102,7 +116,10 @@ def temp_monthly():
     # Unravel results into a one-dimensional array and convert to a list
     temps = list(np.ravel(results))
     
-    return jsonify(results)
+    # Close the session
+    session.close()
+
+    return jsonify(temps)
 
 # Create statistics route
 @app.route('/api/v1.0/temp/<start>')
@@ -111,14 +128,22 @@ def temp_monthly():
 # Create stats function with start and end parameters
 def stats(start = None, end = None):
 
+    # Create a session link from Python to our database
+    session = Session(engine)
+
     # Create list with min, max, and avg
     sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
 
     # Add if-not statement, the * indicates there are multiple results for this query
     if not end:
         results = session.query(*sel).\
-            filter(Measurement.date >= start).\
-            filter(Measurement.date <= end).all()
+            filter(Measurement.date <= start).all()
+        temps = list(np.ravel(results))
+
+        # Close the session
+        session.close()
+
+        return jsonify(temps)
     
     # Create query to get our stats data
     results = session.query(*sel).\
@@ -128,4 +153,13 @@ def stats(start = None, end = None):
     # Unravel results and convert to a list
     temps = list(np.ravel(results))
     
+    # Close the session
+    session.close()
+
     return jsonify(temps)
+
+# This allows you to run the file by typing "python app.py" instead of "flask run"
+# By keeping debug = True, any changes made to this file will auto refresh
+# You will only need to refresh your webpage as opposed to re-running the file after each change
+if __name__ == '__main__':
+    app.run(debug= True)
