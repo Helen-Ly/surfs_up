@@ -46,9 +46,9 @@ All these questions will lead us to the bigger question, how will this affect ou
 
 1. Download the following files into the same folder for the project.
 
-  - hawaii.sqlite
-  - climate_analysis.ipynb
-  - app.py
+    - hawaii.sqlite
+    - climate_analysis.ipynb
+    - app.py
   
 2. In your Anaconda prompt, activate your development environment and navigate to the folder holding the above files and run Jupyter Lab or Jupyter Notebook.
 3. Ensure that you have the required libraries installed, such as *sqlalchemy*. In not, open another Anaconda terminal and install the library within your development environment.
